@@ -22,45 +22,73 @@
 
 using namespace std;
 
-int N, M;
-int parent[100000 + 1];
-int positive[100000 + 1];
-vector<int> tree[100000 + 1];
-
-void dfs(int p, int w) {
-	if (tree[p].size() == 0)) return;
-
-	for (auto& t : tree[p]) {
-		positive[t] += w;
-		dfs(t, w);
-	}
-}
+int N, S, D, answerDist;
+int cache[100000 + 1];
+int ndist[100000 + 1];
+bool visited[100000 + 1];
+vector<int> adj[100000 + 1];
 
 void input() {
-	cin >> N >> M;
-	for (int i = 1; i <= N; i++) {
-		cin >> parent[i];
-		if (i == 1) continue;
-		tree[parent[i]].push_back(i);
-	}
-	for (int i = 0; i < M; i++) {
-		int person, w;
-		cin >> person >> w;
-
-		dfs(person, w);
+	cin >> N >> S >> D;
+	for (int i = 1; i < N; i++) {
+		int x, y; cin >> x >> y;
+		adj[x].push_back(y);
+		adj[y].push_back(x);
 	}
 }
 
-void printAnswer() {
-	for (int i = 1; i <= N; i++) {
-		cout << positive[i] << " ";
+int path(int node) {
+	queue<int> q;
+	visited[node] = true;
+	for (auto &next : adj[node]) {
+		if (visited[next]) continue;
+		q.push(next);
 	}
+	if (q.empty()) {
+		ndist[node] = 1;
+		return 1;
+	}
+
+	int& ret = ndist[node];
+	while (!q.empty()) {
+		int next = q.front(); 
+		q.pop();
+
+		ret = max(ret, path(next) + 1);
+	}
+	return ret;
+}
+
+void cacheDist(int n) {
+	queue<int> q;
+	visited[n] = true;
+
+	answerDist++;
+	for (auto next : adj[n]) {
+		if (visited[next] || ndist[next] <= D) continue;
+		q.push(next);
+	}
+	if (q.empty()) return;
+
+	while (!q.empty()) {
+		int ny = q.front(); q.pop();
+
+		cacheDist(ny);
+		answerDist++;
+	}
+}
+
+void solution() {
+	path(S);
+	memset(visited, false, sizeof(visited));
+	cacheDist(S);
+	cout << answerDist - 1 << endl;
 }
 
 int main() {
 	fastio;
 	input();
-	printAnswer();
+	solution();
 
 	return 0;
 }
