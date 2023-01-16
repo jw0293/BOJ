@@ -44,12 +44,14 @@ int solution(int start){
 			}
 		}
 	}
+
+	return distances[N];
 }
 
 int main() {
 	fastio;
 	input();
-	solution(1);
+	cout << solution(1) << endl;
 	
 	return 0;
 }
