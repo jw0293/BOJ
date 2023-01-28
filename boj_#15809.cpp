@@ -71,7 +71,11 @@ void warCountry(int y, int x){
 			}
 		}
 	} else{
-		parent[y] = parent[x] = -1;
+		for(int i=1;i<=N;i++){
+			if(parent[i] == parentY || parent[i] == parentX){
+				parent[i] = -1;
+			}
+		}
 	}
 }
 
@@ -97,9 +101,10 @@ void input(){
 vector<int> solution(){
 	vector<int> result;
 	for(int i=1;i<=N;i++){
+		if(parent[i] == -1) continue;
 		if(!visited[parent[i]]){
 			visited[parent[i]] = true;
-			result.push_back(power[i]);
+			result.push_back(power[parent[i]]);
 		}
 	}
 	sort(result.begin(), result.end());
