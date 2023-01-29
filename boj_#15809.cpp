@@ -11,7 +11,6 @@ typedef unsigned long long ull;
 int N, M;
 int parent[100000 + 1];
 int power[100000 + 1];
-bool visited[100000 + 1];
 
 void init(){
 	for(int i=1;i<=N;i++) parent[i] = i;
@@ -29,53 +28,33 @@ bool isSame(int y, int x){
 void unionCountry(int y, int x){
 	int parentY = getParent(y);
 	int parentX = getParent(x);
-	int soilderPower = power[y] + power[x];
+	int soilderPower = power[parentY] + power[parentX];
 	if(parentY < parentX){
-		for(int i=1;i<=N;i++){
-			if(parent[i] == parentX) {
-				parent[i] = parentY;
-			}
-			if(parent[i] == parentY){
-				power[i] = soilderPower;
-			}
-		}
+		parent[parentX] = parentY;
+		power[parentY] = power[parentY] + power[parentX];
+		power[parentX] = power[parentY];
 	} else{
-		for(int i=1;i<=N;i++){
-			if(parent[i] == parentY) {
-				parent[i] = parentX;;
-			}
-			if(parent[i] == parentX){
-				power[i] = soilderPower;
-			}
-		}
+		parent[parentY] = parentX;
+		power[parentX] = power[parentY] + power[parentX];
+		power[parentY] = power[parentX];
 	}
 }
 
 void warCountry(int y, int x){
+	if(isSame(y, x)) return;
 	int parentY = getParent(y);
 	int parentX = getParent(x);
-	if(power[y] < power[x]){
-		int soliderPower = abs(power[y] - power[x]);
-		for(int i=1;i<=N;i++){
-			if(parent[i] == parentY) {
-				parent[i] = parentX;
-				power[i] = soliderPower;
-			}
-		}
-	} else if(power[y] > power[x]){
-		int soliderPower = abs(power[y] - power[x]);
-		for(int i=1;i<=N;i++){
-			if(parent[i] == parentX) {
-				parent[i] = parentY;
-				power[i] = soliderPower;
-			}
-		}
+	if(power[parentY] < power[parentX]){
+		power[parentX] = power[parentX] - power[parentY];
+		power[parentY] = 0;
+		parent[parentY] = parentX;
+	} else if(power[parentY] > power[parentX]){ 
+		power[parentY] = power[parentY] - power[parentX];
+		power[parentX] = 0;
+		parent[parentX] = parentY;
 	} else{
-		for(int i=1;i<=N;i++){
-			if(parent[i] == parentY || parent[i] == parentX){
-				parent[i] = -1;
-			}
-		}
+		power[parentY] = power[parentX] = 0;
+		parent[parentY] = parent[parentX] = -1;
 	}
 }
 
@@ -102,9 +81,8 @@ vector<int> solution(){
 	vector<int> result;
 	for(int i=1;i<=N;i++){
 		if(parent[i] == -1) continue;
-		if(!visited[parent[i]]){
-			visited[parent[i]] = true;
-			result.push_back(power[parent[i]]);
+		if(parent[i] == i && power[i] != 0){
+			result.push_back(power[i]);
 		}
 	}
 	sort(result.begin(), result.end());
