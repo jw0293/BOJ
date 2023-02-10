@@ -12,6 +12,7 @@ typedef struct Info{
 	int y;
 	int cost;
 }Info;
+
 struct cmp{
 	bool operator()(Info &lhs, Info &rhs){
 		return lhs.cost > rhs.cost;
@@ -30,14 +31,12 @@ void init(){
 
 int getParent(int x){
 	if(x == parent[x]) return x;
-	return x = getParent(parent[x]);
+	return parent[x] = getParent(parent[x]);
 }
 
 void unionNode(int a, int b){
 	int parentA = getParent(a);
 	int parentB = getParent(b);
-	cout << "A Number : " << a << " Parent is " << parentA << endl;
-	cout << "B Number : " << b << " Parent is " << parentB << endl;
 	if(parentA < parentB){
 		for(int i=1;i<=N;i++){
 			if(parent[i] == parentB) parent[i] = parentA;
@@ -55,12 +54,8 @@ bool isSame(int a, int b){
 }
 
 bool isMST(){
-	int p = getParent(1);
 	for(int i=2;i<=N;i++){
-		if(parent[i] != p) {
-			cout << "Parent DIFF --> " << i  << " >> " << parent[i] << endl;
-			return false;
-		}
+		if(parent[i] != parent[1]) return false;
 	}
 	return true;
 }
@@ -83,7 +78,6 @@ int getMST(){
 		if(isMST()) break;
 		Info cur = pq1.top();
 		pq1.pop();
-		cout << "[ " << cur.x << " : " << cur.y << " ] -> " << cur.cost << endl;
 		if(isSame(cur.x, cur.y)) {
 			temp.push_back(cur);
 			continue;
@@ -93,36 +87,47 @@ int getMST(){
 		score += cur.cost;
 		pq2.push(cur);
 	}
+
 	for(auto &tmp : temp) {
-		cout << "==> " << tmp.cost << endl;
 		pq1.push(tmp);
 	}
+
 	return score;
 }
 
-void initParent(int c, int t){
-	bool flag = false;
+void initParent(vector<int> &re, int t){
+	re.push_back(t);
 	visited[t] = true;
 	minParent = min(minParent, t);
-	for(int i=1;i<=N;i++){
-		if(!visited[i] && conn[t][i]) {
-			flag = true;
-			break;
-		}
-	}
-	if(!flag) {
-		cout << "---> " << c << " : " << minParent << endl;
-		parent[t] = minParent;
-		return;
-	}
 
 	for(int i=1;i<=N;i++){
 		if(!visited[i] && conn[t][i]){
-			initParent(c, i);
+			initParent(re, i);
 		}
 	}
+}
 
-	parent[t] = minParent;
+Info deConnect(){
+	Info deconn = pq2.top();
+	pq2.pop();
+	conn[deconn.y][deconn.x] = 0;
+	conn[deconn.x][deconn.y] = 0;
+
+	return deconn;
+}
+
+void dfs(int x){
+	vector<int> re;
+	minParent = INF;
+	memset(visited, false, sizeof(visited));
+	initParent(re, x);
+	for(auto &r : re) parent[r] = minParent;
+}
+
+void initParent(int a, int b){
+	vector<int> re;
+	dfs(a);
+	dfs(b);
 }
 
 vector<int> solution(){
@@ -133,26 +138,12 @@ vector<int> solution(){
 
 	int result = firstScore;
 	for(int i=1;i<K;i++){
-		Info deconn = pq2.top();
-		pq2.pop();
-
-		conn[deconn.y][deconn.x] = 0;
-		conn[deconn.x][deconn.y] = 0;
-
-		minParent = INF;
-		memset(visited, false, sizeof(visited));
-		initParent(i, deconn.x);
-		minParent = INF;
-		memset(visited, false, sizeof(visited));
-		initParent(i, deconn.y);
-
+		Info deconn = deConnect();
+		initParent(deconn.x, deconn.y);
 		result -= deconn.cost;
 
 		result += getMST();
-		if(!isMST()) {
-			cout << "No MST " << endl;
-			return answer;
-		}
+		if(!isMST()) return answer;
 		answer[i] = result;
 	}
 	return answer;
