@@ -8,38 +8,41 @@ using namespace std;
 typedef long long ll;
 typedef unsigned long long ull;
 
-const int MAX_N = 100000 + 1;
+const int ROOT = 1;
+const int MAX_N = 40000 + 1;
 
 int N, M;
 int depth[MAX_N];
 bool visited[MAX_N];
-int parent[MAX_N][30];
-vector<int> adj[MAX_N];
+int parent[MAX_N][16];
+ll dist[MAX_N];
+vector<pair<int, int>> adj[MAX_N];
 
 void input(){
 	cin >> N;
 	for(int i=0;i<N-1;i++){
-		int x, y;
-		cin >> x >> y;
-		adj[x].push_back(y);
-		adj[y].push_back(x);
+		int x, y, cost;
+		cin >> x >> y >> cost;
+		adj[x].push_back({y, cost});
+		adj[y].push_back({x, cost});
 	}
 }
 
-void dfs(int node, int dpth){
+void dfs(int node, int dpth, ll cost){
+	dist[node] = cost;
 	visited[node] = true;
 	depth[node] = dpth;
 
 	for(auto &next : adj[node]){
-		if(!visited[next]) {
-			parent[next][0] = node;
-			dfs(next, dpth+1);
+		if(!visited[next.first]) {
+			parent[next.first][0] = node;
+			dfs(next.first, dpth+1, cost + next.second);
 		}
 	}
 }
 
 void cache(){
-	for(int j=1;j<30;j++){
+	for(int j=1;j<16;j++){
 		for(int i=1;i<=N;i++){
 			parent[i][j] = parent[parent[i][j-1]][j-1];
 		}
@@ -47,7 +50,7 @@ void cache(){
 }
 
 void init(){
-	dfs(1, 0);
+	dfs(1, 0, 0);
 	cache();
 }
 
@@ -61,7 +64,7 @@ int LCA(int u, int v){
 	
 	if(u == v) return u;
 
-	for(int i=29;i>=0;i--){
+	for(int i=15;i>=0;i--){
 		if(parent[u][i] != parent[v][i]) u = parent[u][i], v = parent[v][i];
 	}
 
@@ -76,7 +79,8 @@ void solution(){
 		int x, y;
 		cin >> x >> y;
 
-		cout << LCA(x, y) << endl;
+		int lca = LCA(x, y);
+		cout << (dist[x] - dist[lca]) + (dist[y] - dist[lca]) << endl;
 	}
 }
 
